@@ -1,0 +1,85 @@
+/node_modules
+/public/hot
+/public/storage
+/storage/*.key
+/vendor
+.env
+.env.backup
+.env.production
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+auth.json
+npm-debug.log
+yarn-error.log
+/.fleet
+/.idea
+/.vscode
+
+# Arquivos de backup
+*.sql
+*.sql.gz
+*.tar.gz
+*.zip
+
+# Logs
+*.log
+logs/
+
+# Arquivos temporários
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Arquivos de sistema
+.DS_Store
+Thumbs.db
+
+# Arquivos de upload
+/public/uploads/*
+!/public/uploads/.gitkeep
+
+# Arquivos de certificados
+*.pem
+*.key
+*.crt
+
+# Arquivos de configuração local
+config/local.php
+
+# Arquivos de cache
+bootstrap/cache/*
+!bootstrap/cache/.gitkeep
+
+# Arquivos de sessão
+storage/framework/sessions/*
+!storage/framework/sessions/.gitkeep
+
+# Arquivos de views compiladas
+storage/framework/views/*
+!storage/framework/views/.gitkeep
+
+# Arquivos de cache de configuração
+storage/framework/cache/*
+!storage/framework/cache/.gitkeep
+
+# Arquivos de backup do banco
+database/backups/
+
+# Arquivos de teste
+/tests/coverage/
+
+# Arquivos de IDE
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# Arquivos de Docker
+docker-compose.override.yml
+
+# Arquivos de ambiente local
+.env.local
+.env.staging 
