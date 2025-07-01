@@ -1,6 +1,10 @@
-FROM php:8.2-fpm
+FROM php:8.3-fpm
 
-# Instalar dependências do sistema
+# set your user name, ex: user=carlos
+ARG user=yourusername
+ARG uid=1000
+
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
     git \
     curl \
@@ -8,48 +12,31 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     zip \
-    unzip \
-    libzip-dev \
-    libicu-dev \
-    libxml2-dev \
-    sudo
+    unzip
 
-# Limpar cache
+# Clear cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Instalar extensões PHP
-RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl soap
+# Install PHP extensions
+RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd sockets
 
-# Obter Composer mais recente
+# Get latest Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Definir diretório de trabalho
+# Create system user to run Composer and Artisan Commands
+RUN useradd -G www-data,root -u $uid -d /home/$user $user
+RUN mkdir -p /home/$user/.composer && \
+    chown -R $user:$user /home/$user
+
+# Install redis
+RUN pecl install -o -f redis \
+    &&  rm -rf /tmp/pear \
+    &&  docker-php-ext-enable redis
+
+# Set working directory
 WORKDIR /var/www
 
-# Criar usuário com UID/GID dinâmicos
-ARG UID=1000
-ARG GID=1000
-RUN groupadd -g $GID appuser && \
-    useradd -u $UID -g $GID -m -s /bin/bash appuser && \
-    echo "appuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+# Copy custom configurations PHP
+COPY docker/php/custom.ini /usr/local/etc/php/conf.d/custom.ini
 
-# Configurar Git para aceitar o diretório e evitar problemas de permissão
-RUN git config --global --add safe.directory /var/www && \
-    git config --global user.name "Docker User" && \
-    git config --global user.email "docker@example.com"
-
-# Copiar script de entrada
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
-
-# Mudar para o usuário appuser
-USER appuser
-
-# Definir script de entrada
-ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
-
-# Expor porta 9000
-EXPOSE 9000
-
-# Comando padrão
-CMD ["php-fpm"] 
+USER $user
