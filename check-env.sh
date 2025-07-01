@@ -1,12 +1,10 @@
 #!/bin/bash
 
-# Script para iniciar o SigStore ERP com Docker Compose
-# Resolve problemas de permissão e versão obsoleta
+# Script para verificar e configurar o arquivo .env
 
-echo "🚀 Iniciando SigStore ERP..."
-
-# Verificar e configurar o arquivo .env
 echo "🔍 Verificando arquivo .env..."
+
+# Verificar se o arquivo .env existe
 if [ ! -f .env ]; then
     echo "❌ Arquivo .env não encontrado!"
     echo "📝 Copiando env.example para .env..."
@@ -58,34 +56,6 @@ if [ -z "$GID_VALUE" ] || [ "$GID_VALUE" = "" ]; then
 fi
 
 echo "✅ Verificação do .env concluída!"
-echo "📋 Valores: UID=$(grep "^UID=" .env | cut -d'=' -f2), GID=$(grep "^GID=" .env | cut -d'=' -f2)"
-
-# Parar containers existentes
-echo "🛑 Parando containers existentes..."
-docker-compose down
-
-# Reconstruir a imagem com os novos argumentos
-echo "🔨 Reconstruindo imagem Docker..."
-docker-compose build --no-cache
-
-# Iniciar os serviços
-echo "▶️  Iniciando serviços..."
-docker-compose up -d
-
-# Aguardar um pouco para os serviços iniciarem
-echo "⏳ Aguardando serviços iniciarem..."
-sleep 15
-
-# Corrigir permissões após a inicialização
-echo "🔧 Corrigindo permissões..."
-docker-compose exec app sudo chown -R appuser:appuser /var/www 2>/dev/null || true
-docker-compose exec app sudo chmod -R 775 /var/www 2>/dev/null || true
-
-# Verificar status dos containers
-echo "📊 Status dos containers:"
-docker-compose ps
-
-echo "✅ SigStore ERP iniciado com sucesso!"
-echo "🌐 Acesse: http://localhost:8080"
-echo "🗄️  MySQL: localhost:3306"
-echo "🔴 Redis: localhost:6379" 
+echo "📋 Valores atuais:"
+echo "   UID: $(grep "^UID=" .env | cut -d'=' -f2)"
+echo "   GID: $(grep "^GID=" .env | cut -d'=' -f2)" 

@@ -25,12 +25,22 @@
 - Removido `chown` do Dockerfile para evitar problemas durante o build
 - Permissões são corrigidas após os arquivos serem montados no container
 
+### 4. Erro de Interpolação do Docker Compose
+**Problema:** `ERROR: Invalid interpolation format for "app" option in service "services": "${UID:-1000}"`
+
+**Solução:**
+- Removida sintaxe `${UID:-1000}` que não é compatível com versões mais antigas
+- Usada sintaxe simples `${UID}` e `${GID}`
+- Criado script `check-env.sh` para verificar e configurar o arquivo `.env`
+- Criado script `test-docker.sh` para testar a configuração
+
 ## Arquivos Modificados
 
 ### docker-compose.yml
 - ❌ Removida linha `version: '3.7'`
-- ✅ Adicionado `user: "${UID:-1000}:${GID:-1000}"` no serviço app
-- ✅ Adicionados argumentos `UID` e `GID` no build do serviço app
+- ✅ Adicionado `user: "${UID}:${GID}"` no serviço app
+- ✅ Adicionados argumentos `UID: ${UID}` e `GID: ${GID}` no build do serviço app
+- ✅ Corrigida sintaxe de interpolação para compatibilidade
 
 ### Dockerfile
 - ✅ Adicionados argumentos `ARG UID=1000` e `ARG GID=1000`
@@ -44,6 +54,16 @@
 - ✅ Script que corrige permissões automaticamente quando o container inicia
 - ✅ Executa `chown` e `chmod` após os arquivos serem montados
 - ✅ Usa `sudo` para executar comandos que requerem privilégios
+
+### check-env.sh (NOVO)
+- ✅ Script para verificar e configurar o arquivo `.env`
+- ✅ Cria arquivo `.env` básico se não existir
+- ✅ Verifica e corrige valores das variáveis UID e GID
+
+### test-docker.sh (NOVO)
+- ✅ Script para testar se o Docker Compose está funcionando
+- ✅ Verifica sintaxe do docker-compose.yml
+- ✅ Testa interpolação de variáveis
 
 ### .env
 - ✅ Adicionadas variáveis:
@@ -66,16 +86,34 @@ chmod +x start-docker.sh
 .\start-docker.ps1
 ```
 
-### Script de Correção de Permissões (Manual)
+### Scripts de Verificação
 ```bash
+# Verificar configuração do .env
+chmod +x check-env.sh test-docker.sh
+./check-env.sh
+./test-docker.sh
+
+# Corrigir permissões manualmente
 chmod +x fix-permissions.sh
 ./fix-permissions.sh
 ```
 
 ## Como Usar
 
-1. **Certifique-se de que o arquivo `.env` existe** e contém as variáveis UID e GID
-2. **Execute um dos scripts de inicialização** ou use diretamente:
+1. **Primeiro, verifique a configuração:**
+   ```bash
+   chmod +x check-env.sh test-docker.sh
+   ./check-env.sh
+   ./test-docker.sh
+   ```
+
+2. **Execute o script de inicialização:**
+   ```bash
+   chmod +x start-docker.sh
+   ./start-docker.sh
+   ```
+
+3. **Ou use comandos manuais:**
    ```bash
    docker-compose down
    docker-compose build --no-cache
@@ -98,6 +136,18 @@ Você deve ver todos os serviços (app, nginx, db, redis) com status "Up".
 - **Redis:** localhost:6379
 
 ## Solução de Problemas
+
+### Se houver erro de interpolação:
+1. **Execute o script de verificação:**
+   ```bash
+   ./check-env.sh
+   ./test-docker.sh
+   ```
+
+2. **Verifique se o arquivo .env existe e tem as variáveis:**
+   ```bash
+   cat .env | grep -E "(UID|GID)"
+   ```
 
 ### Se ainda houver problemas de permissão:
 1. **Execute o script de correção manual:**
@@ -138,4 +188,5 @@ docker-compose exec app whoami
 - A reconstrução da imagem é necessária após as mudanças no Dockerfile
 - O usuário `appuser` tem privilégios sudo para executar comandos que requerem root
 - O script de entrada corrige automaticamente as permissões quando o container inicia
-- Todos os arquivos são propriedade do usuário `appuser` dentro do container 
+- Todos os arquivos são propriedade do usuário `appuser` dentro do container
+- A sintaxe de interpolação foi simplificada para compatibilidade com versões mais antigas do Docker Compose 

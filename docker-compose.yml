@@ -9,12 +9,12 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        UID: ${UID:-1000}
-        GID: ${GID:-1000}
+        UID: ${UID}
+        GID: ${GID}
     container_name: sigstore_app
     restart: unless-stopped
     working_dir: /var/www
-    user: "${UID:-1000}:${GID:-1000}"
+    user: "${UID}:${GID}"
     volumes:
       - ./:/var/www
       - ./docker/nginx/conf.d:/etc/nginx/conf.d
