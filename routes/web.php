@@ -142,16 +142,6 @@ Route::middleware(['authh', 'validaEmpresa'])->group(function () {
         Route::resource('video-suporte', 'VideoSuporteController');
         Route::resource('financeiro-plano', 'FinanceiroPlanoController');
 
-        Route::resource('config-geral', 'ConfigGeralController');
-        Route::resource('config-api', 'ConfigApiController');
-        Route::get('config-api-logs', 'ConfigApiController@logs')->name('config-api.logs');
-    
-        Route::resource('evolution-api-config', 'EvolutionApiConfigController');
-        Route::get('evolution-api-config-test-connection/{id}', 'EvolutionApiConfigController@testConnection')->name('evolution-api-config.test-connection');
-        Route::get('evolution-api-config-send-test/{id}', 'EvolutionApiConfigController@sendTestMessage')->name('evolution-api-config.send-test');
-    
-    });
-
         Route::group(['prefix' => '/update-sql'], function () {
             Route::get('/', 'UpdateController@index')->name('update-sql.index');
             Route::get('/update', 'UpdateController@update');
@@ -859,11 +849,10 @@ Route::middleware(['verificaEmpresa', 'validaPlano'])->group(function () {
     Route::resource('config-api', 'ConfigApiController');
     Route::get('config-api-logs', 'ConfigApiController@logs')->name('config-api.logs');
 
-
-
 });
 Route::resource('config', 'ConfigController');
 Route::get('config-delete-logo', 'ConfigController@removerLogo')->name('config.delete-logo');
 
 Route::resource('payment', 'PaymentController');
 Route::get('payment/pix/{transacao_id}', 'PaymentController@pix')->name('payment.pix');
+});

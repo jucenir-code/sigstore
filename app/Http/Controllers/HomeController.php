@@ -59,14 +59,14 @@ class HomeController extends Controller
         })
         ->where('tpNF', 1)
         ->whereMonth('created_at', date('m'))
-        ->sum('total');
+        ->sum('valor_produtos');
 
         $totalNfce = Nfce::where('empresa_id', request()->empresa_id)
         ->where(function($q) {
             $q->where('estado', 'aprovado')->orWhere('estado', 'cancelado');
         })
         ->whereMonth('created_at', date('m'))
-        ->sum('total');
+        ->sum('valor_produtos');
 
         $totalEmitidoMes = $totalNfce + $totalNfe;
 

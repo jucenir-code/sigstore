@@ -82,4 +82,16 @@ docker-compose.override.yml
 
 # Arquivos de ambiente local
 .env.local
-.env.staging 
+.env.staging
+
+# Arquivos do macOS
+.DS_Store
+._*
+__MACOSX/
+
+# Arquivos de metadados do macOS
+.AppleDouble
+.LSOverride
+
+# Arquivos de thumbnail do macOS
+._.DS_Store 

@@ -1,14 +1,17 @@
+version: '3.7'
+
 services:
   # Serviço PHP/Laravel
   app:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: erp_app
+    container_name: sigstore_app
     restart: unless-stopped
-    working_dir: /var/www/
+    working_dir: /var/www
     volumes:
       - ./:/var/www
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
     networks:
       - erp_network
     depends_on:
@@ -18,13 +21,14 @@ services:
   # Serviço Nginx
   nginx:
     image: nginx:alpine
-    container_name: erp_nginx
+    container_name: sigstore_nginx
     restart: unless-stopped
     ports:
-      - "80:80"
+      - "8080:80"
+      - "443:443"
     volumes:
       - ./:/var/www
-      - ./docker/nginx/conf.d:/etc/nginx/conf.d/
+      - ./docker/nginx/conf.d:/etc/nginx/conf.d
     networks:
       - erp_network
     depends_on:
@@ -33,37 +37,34 @@ services:
   # Serviço MySQL
   db:
     image: mysql:8.0
-    container_name: erp_db
+    container_name: sigstore_mysql
     restart: unless-stopped
     environment:
-      MYSQL_DATABASE: ${DB_DATABASE}
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
-      MYSQL_PASSWORD: ${DB_PASSWORD}
-      MYSQL_USER: ${DB_USERNAME}
-      SERVICE_TAGS: dev
-      SERVICE_NAME: mysql
-    ports:
-      - "3306:3306"
+      MYSQL_DATABASE: sigstore
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_USER: sigstore
+      MYSQL_PASSWORD: sigstore123
     volumes:
       - dbdata:/var/lib/mysql
-      - ./docker/mysql/my.cnf:/etc/mysql/my.cnf
+      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
+    ports:
+      - "3306:3306"
     networks:
       - erp_network
 
   # Serviço Redis
   redis:
     image: redis:alpine
-    container_name: erp_redis
+    container_name: sigstore_redis
     restart: unless-stopped
     ports:
       - "6379:6379"
     networks:
       - erp_network
 
-networks:
-  erp_network:
-    driver: bridge
-
 volumes:
   dbdata:
-    driver: local 
+
+networks:
+  erp_network:
+    driver: bridge 

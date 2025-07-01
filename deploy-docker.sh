@@ -10,8 +10,8 @@ echo "🐳 Iniciando deploy Docker do Laravel ERP..."
 # Configurações
 PROJECT_NAME="sigstore"
 PROJECT_PATH="/opt/$PROJECT_NAME"
-GIT_REPO="SEU_REPOSITORIO_GIT_AQUI"
-BRANCH="main"
+GIT_REPO="https://github.com/jucenir-code/sigstore.git"
+BRANCH="master"
 
 # Cores para output
 RED='\033[0;31m'
@@ -19,7 +19,6 @@ GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-# Função para log colorido
 log() {
     echo -e "${GREEN}[$(date +'%Y-%m-%d %H:%M:%S')] $1${NC}"
 }
@@ -34,9 +33,9 @@ warning() {
 }
 
 # Verificar se está rodando como root
-if [[ $EUID -eq 0 ]]; then
-   error "Este script não deve ser executado como root"
-fi
+# if [[ $EUID -eq 0 ]]; then
+#    error "Este script não deve ser executado como root"
+# fi
 
 # 1. Atualizar sistema
 log "Atualizando sistema..."
@@ -218,8 +217,8 @@ sudo systemctl restart nginx
 # 10. Construir e iniciar containers
 log "Construindo e iniciando containers..."
 cd $PROJECT_PATH
-docker-compose -f docker-compose.prod.yml build
-docker-compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml build
+docker compose -f docker-compose.prod.yml up -d
 
 # 11. Aguardar containers iniciarem
 log "Aguardando containers iniciarem..."
@@ -227,18 +226,22 @@ sleep 30
 
 # 12. Executar comandos Laravel
 log "Executando comandos Laravel..."
-docker-compose -f docker-compose.prod.yml exec app php artisan key:generate --force
-docker-compose -f docker-compose.prod.yml exec app php artisan migrate --force
-docker-compose -f docker-compose.prod.yml exec app php artisan db:seed --force
-docker-compose -f docker-compose.prod.yml exec app php artisan config:cache
-docker-compose -f docker-compose.prod.yml exec app php artisan route:cache
-docker-compose -f docker-compose.prod.yml exec app php artisan view:cache
+docker compose -f docker-compose.prod.yml exec app git config --global --add safe.directory /var/www
+docker compose -f docker-compose.prod.yml exec app chown -R www-data:www-data /var/www
+docker compose -f docker-compose.prod.yml exec app chmod -R 775 /var/www
+docker compose -f docker-compose.prod.yml exec app composer install --no-dev --optimize-autoloader
+docker compose -f docker-compose.prod.yml exec app php artisan key:generate --force
+docker compose -f docker-compose.prod.yml exec app php artisan migrate --force
+docker compose -f docker-compose.prod.yml exec app php artisan db:seed --force
+docker compose -f docker-compose.prod.yml exec app php artisan config:cache
+docker compose -f docker-compose.prod.yml exec app php artisan route:cache
+docker compose -f docker-compose.prod.yml exec app php artisan view:cache
 
 # 13. Configurar permissões
 log "Configurando permissões..."
-docker-compose -f docker-compose.prod.yml exec app chown -R www-data:www-data /var/www
-docker-compose -f docker-compose.prod.yml exec app chmod -R 775 /var/www/storage
-docker-compose -f docker-compose.prod.yml exec app chmod -R 775 /var/www/bootstrap/cache
+docker compose -f docker-compose.prod.yml exec app chown -R www-data:www-data /var/www
+docker compose -f docker-compose.prod.yml exec app chmod -R 775 /var/www/storage
+docker compose -f docker-compose.prod.yml exec app chmod -R 775 /var/www/bootstrap/cache
 
 # 14. Configurar SSL (opcional)
 read -p "Deseja configurar SSL com Let's Encrypt? (y/n): " -n 1 -r
@@ -281,14 +284,15 @@ log "Criando script de atualização..."
 cat > $PROJECT_PATH/update.sh << 'EOF'
 #!/bin/bash
 cd /opt/sigstore
-git pull origin main
-docker-compose -f docker-compose.prod.yml down
-docker-compose -f docker-compose.prod.yml build
-docker-compose -f docker-compose.prod.yml up -d
-docker-compose -f docker-compose.prod.yml exec app php artisan migrate --force
-docker-compose -f docker-compose.prod.yml exec app php artisan config:cache
-docker-compose -f docker-compose.prod.yml exec app php artisan route:cache
-docker-compose -f docker-compose.prod.yml exec app php artisan view:cache
+git pull origin master
+docker compose -f docker-compose.prod.yml down
+docker compose -f docker-compose.prod.yml build
+docker compose -f docker-compose.prod.yml up -d
+docker compose -f docker-compose.prod.yml exec app composer install --no-dev --optimize-autoloader
+docker compose -f docker-compose.prod.yml exec app php artisan migrate --force
+docker compose -f docker-compose.prod.yml exec app php artisan config:cache
+docker compose -f docker-compose.prod.yml exec app php artisan route:cache
+docker compose -f docker-compose.prod.yml exec app php artisan view:cache
 echo "Atualização concluída!"
 EOF
 
@@ -298,11 +302,11 @@ log "✅ Deploy Docker concluído com sucesso!"
 log "🌐 Acesse: http://SEU_DOMINIO_AQUI"
 log "📁 Projeto em: $PROJECT_PATH"
 log "🐳 Containers ativos:"
-docker-compose -f docker-compose.prod.yml ps
+docker compose -f docker-compose.prod.yml ps
 
 echo ""
 echo "📋 Comandos úteis:"
-echo "• Ver logs: docker-compose -f docker-compose.prod.yml logs -f"
-echo "• Parar: docker-compose -f docker-compose.prod.yml down"
+echo "• Ver logs: docker compose -f docker-compose.prod.yml logs -f"
+echo "• Parar: docker compose -f docker-compose.prod.yml down"
 echo "• Atualizar: ./update.sh"
 echo "• Backup manual: sudo /etc/cron.daily/$PROJECT_NAME-docker-backup" 

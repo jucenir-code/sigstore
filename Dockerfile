@@ -1,9 +1,5 @@
 FROM php:8.2-fpm
 
-# Argumentos definidos no docker-compose.yml
-ARG user=laravel
-ARG uid=1000
-
 # Instalar dependências do sistema
 RUN apt-get update && apt-get install -y \
     git \
@@ -26,16 +22,20 @@ RUN docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd zip intl soap
 # Obter Composer mais recente
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Criar usuário do sistema para executar comandos Composer e Artisan
-RUN useradd -G www-data,root -u $uid -d /home/$user $user
-RUN mkdir -p /home/$user/.composer && \
-    chown -R $user:$user /home/$user
-
 # Definir diretório de trabalho
 WORKDIR /var/www
 
 # Ajustar permissões
-RUN chown -R $user:$user /var/www
+RUN chown -R www-data:www-data /var/www
 RUN chmod -R 775 /var/www
 
-USER $user 
+# Configurar Git para aceitar o diretório
+RUN git config --global --add safe.directory /var/www
+
+USER www-data
+
+# Expor porta 9000
+EXPOSE 9000
+
+# Comando padrão
+CMD ["php-fpm"] 
