@@ -34,6 +34,15 @@
 - Criado script `check-env.sh` para verificar e configurar o arquivo `.env`
 - Criado script `test-docker.sh` para testar a configuração
 
+### 5. Erro de Configuração Incompatível
+**Problema:** `ERROR: The Compose file './docker-compose.yml' is invalid because: Unsupported config option for services`
+
+**Solução:**
+- Criado script `check-docker-version.sh` para detectar versão do Docker Compose
+- Criado `docker-compose-v1.yml` para versões antigas
+- Criado script `start-docker-legacy.sh` para versões muito antigas
+- Ajuste automático da configuração baseado na versão detectada
+
 ## Arquivos Modificados
 
 ### docker-compose.yml
@@ -41,6 +50,12 @@
 - ✅ Adicionado `user: "${UID}:${GID}"` no serviço app
 - ✅ Adicionados argumentos `UID: ${UID}` e `GID: ${GID}` no build do serviço app
 - ✅ Corrigida sintaxe de interpolação para compatibilidade
+- ✅ Adicionada versão `2.4` para compatibilidade com versões antigas
+
+### docker-compose-v1.yml (NOVO)
+- ✅ Versão compatível com Docker Compose 1.x
+- ✅ Usa sintaxe mais simples e compatível
+- ✅ Mantém todas as funcionalidades essenciais
 
 ### Dockerfile
 - ✅ Adicionados argumentos `ARG UID=1000` e `ARG GID=1000`
@@ -60,10 +75,20 @@
 - ✅ Cria arquivo `.env` básico se não existir
 - ✅ Verifica e corrige valores das variáveis UID e GID
 
+### check-docker-version.sh (NOVO)
+- ✅ Script para detectar versão do Docker Compose
+- ✅ Ajusta configuração automaticamente baseado na versão
+- ✅ Instala Docker Compose se necessário
+
 ### test-docker.sh (NOVO)
 - ✅ Script para testar se o Docker Compose está funcionando
 - ✅ Verifica sintaxe do docker-compose.yml
 - ✅ Testa interpolação de variáveis
+
+### start-docker-legacy.sh (NOVO)
+- ✅ Script para versões muito antigas do Docker Compose
+- ✅ Usa configuração simplificada
+- ✅ Compatível com Docker Compose 1.x
 
 ### .env
 - ✅ Adicionadas variáveis:
@@ -75,10 +100,16 @@
 
 ## Scripts de Inicialização
 
-### Para Linux/macOS
+### Para Versões Modernas (Recomendado)
 ```bash
 chmod +x start-docker.sh
 ./start-docker.sh
+```
+
+### Para Versões Antigas (Legacy)
+```bash
+chmod +x start-docker-legacy.sh
+./start-docker-legacy.sh
 ```
 
 ### Para Windows (PowerShell)
@@ -88,9 +119,16 @@ chmod +x start-docker.sh
 
 ### Scripts de Verificação
 ```bash
+# Verificar versão do Docker Compose
+chmod +x check-docker-version.sh
+./check-docker-version.sh
+
 # Verificar configuração do .env
-chmod +x check-env.sh test-docker.sh
+chmod +x check-env.sh
 ./check-env.sh
+
+# Testar Docker Compose
+chmod +x test-docker.sh
 ./test-docker.sh
 
 # Corrigir permissões manualmente
@@ -100,25 +138,32 @@ chmod +x fix-permissions.sh
 
 ## Como Usar
 
-1. **Primeiro, verifique a configuração:**
-   ```bash
-   chmod +x check-env.sh test-docker.sh
-   ./check-env.sh
-   ./test-docker.sh
-   ```
+### 1. Detecção Automática (Recomendado)
+```bash
+chmod +x check-docker-version.sh start-docker.sh
+./check-docker-version.sh
+./start-docker.sh
+```
 
-2. **Execute o script de inicialização:**
-   ```bash
-   chmod +x start-docker.sh
-   ./start-docker.sh
-   ```
+### 2. Modo Legacy (Para Versões Antigas)
+```bash
+chmod +x start-docker-legacy.sh
+./start-docker-legacy.sh
+```
 
-3. **Ou use comandos manuais:**
-   ```bash
-   docker-compose down
-   docker-compose build --no-cache
-   docker-compose up -d
-   ```
+### 3. Comandos Manuais
+```bash
+# Para versões modernas
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
+
+# Para versões antigas
+cp docker-compose-v1.yml docker-compose.yml
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
+```
 
 ## Verificação
 
@@ -136,6 +181,22 @@ Você deve ver todos os serviços (app, nginx, db, redis) com status "Up".
 - **Redis:** localhost:6379
 
 ## Solução de Problemas
+
+### Se houver erro de configuração incompatível:
+1. **Execute o script de detecção de versão:**
+   ```bash
+   ./check-docker-version.sh
+   ```
+
+2. **Use o modo legacy:**
+   ```bash
+   ./start-docker-legacy.sh
+   ```
+
+3. **Verifique a versão do Docker Compose:**
+   ```bash
+   docker-compose --version
+   ```
 
 ### Se houver erro de interpolação:
 1. **Execute o script de verificação:**
@@ -189,4 +250,6 @@ docker-compose exec app whoami
 - O usuário `appuser` tem privilégios sudo para executar comandos que requerem root
 - O script de entrada corrige automaticamente as permissões quando o container inicia
 - Todos os arquivos são propriedade do usuário `appuser` dentro do container
-- A sintaxe de interpolação foi simplificada para compatibilidade com versões mais antigas do Docker Compose 
+- A sintaxe de interpolação foi simplificada para compatibilidade com versões mais antigas do Docker Compose
+- Scripts de detecção automática ajustam a configuração baseado na versão do Docker Compose
+- Modo legacy disponível para versões muito antigas (1.x) 

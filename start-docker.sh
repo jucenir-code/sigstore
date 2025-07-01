@@ -5,6 +5,15 @@
 
 echo "🚀 Iniciando SigStore ERP..."
 
+# Verificar versão do Docker Compose e ajustar configuração
+echo "🔍 Verificando versão do Docker Compose..."
+if [ -f "check-docker-version.sh" ]; then
+    chmod +x check-docker-version.sh
+    ./check-docker-version.sh
+else
+    echo "⚠️  Script check-docker-version.sh não encontrado, continuando..."
+fi
+
 # Verificar e configurar o arquivo .env
 echo "🔍 Verificando arquivo .env..."
 if [ ! -f .env ]; then
@@ -59,6 +68,15 @@ fi
 
 echo "✅ Verificação do .env concluída!"
 echo "📋 Valores: UID=$(grep "^UID=" .env | cut -d'=' -f2), GID=$(grep "^GID=" .env | cut -d'=' -f2)"
+
+# Testar configuração do Docker Compose
+echo "🧪 Testando configuração do Docker Compose..."
+if ! docker-compose config > /dev/null 2>&1; then
+    echo "❌ Erro na configuração do Docker Compose!"
+    docker-compose config
+    exit 1
+fi
+echo "✅ Configuração válida!"
 
 # Parar containers existentes
 echo "🛑 Parando containers existentes..."

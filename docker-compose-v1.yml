@@ -1,5 +1,7 @@
+# Docker Compose para SigStore ERP - Versão 1.x
+version: '2.4'
+
 services:
-  # Serviço PHP/Laravel
   app:
     build:
       context: .
@@ -20,7 +22,6 @@ services:
       - db
       - redis
 
-  # Serviço Nginx
   nginx:
     image: nginx:alpine
     container_name: sigstore_nginx
@@ -36,7 +37,6 @@ services:
     depends_on:
       - app
 
-  # Serviço MySQL
   db:
     image: mysql:8.0
     container_name: sigstore_mysql
@@ -54,7 +54,6 @@ services:
     networks:
       - erp_network
 
-  # Serviço Redis
   redis:
     image: redis:alpine
     container_name: sigstore_redis
