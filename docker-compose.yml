@@ -1,4 +1,6 @@
-version: '3.7'
+# Docker Compose para SigStore ERP
+# Configurado para resolver problemas de permissão e versão obsoleta
+# UID e GID são definidos no arquivo .env para evitar problemas de permissão
 
 services:
   # Serviço PHP/Laravel
@@ -6,9 +8,13 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
     container_name: sigstore_app
     restart: unless-stopped
     working_dir: /var/www
+    user: "${UID:-1000}:${GID:-1000}"
     volumes:
       - ./:/var/www
       - ./docker/nginx/conf.d:/etc/nginx/conf.d
