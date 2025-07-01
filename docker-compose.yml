@@ -1,72 +1,67 @@
+version: "3.7"
+
 services:
-  # Serviço PHP/Laravel
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-      args:
-        UID: ${UID}
-        GID: ${GID}
-    container_name: sigstore_app
-    restart: unless-stopped
-    working_dir: /var/www
-    user: "${UID}:${GID}"
-    volumes:
-      - ./:/var/www
-      - ./docker/nginx/conf.d:/etc/nginx/conf.d
-    networks:
-      - erp_network
-    depends_on:
-      - db
-      - redis
+    # image project
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        restart: unless-stopped
+        working_dir: /var/www/
+        volumes:
+            - ./:/var/www
+        depends_on:
+            - redis
+        networks:
+            - laravel
 
-  # Serviço Nginx
-  nginx:
-    image: nginx:alpine
-    container_name: sigstore_nginx
-    restart: unless-stopped
-    ports:
-      - "8080:80"
-      - "443:443"
-    volumes:
-      - ./:/var/www
-      - ./docker/nginx/conf.d:/etc/nginx/conf.d
-    networks:
-      - erp_network
-    depends_on:
-      - app
+    # nginx
+    nginx:
+        image: nginx:alpine
+        restart: unless-stopped
+        ports:
+            - "8989:80"
+        volumes:
+            - ./:/var/www
+            - ./docker/nginx/:/etc/nginx/conf.d/
+        networks:
+            - laravel
 
-  # Serviço MySQL
-  db:
-    image: mysql:8.0
-    container_name: sigstore_mysql
-    restart: unless-stopped
-    environment:
-      MYSQL_DATABASE: sigstore
-      MYSQL_ROOT_PASSWORD: root123
-      MYSQL_USER: sigstore
-      MYSQL_PASSWORD: sigstore123
-    volumes:
-      - dbdata:/var/lib/mysql
-      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf
-    ports:
-      - "3306:3306"
-    networks:
-      - erp_network
+    # db mysql
+    db:
+        image: mysql:5.7.22
+        restart: unless-stopped
+        environment:
+            MYSQL_DATABASE: ${DB_DATABASE:-laravel}
+            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-root}
+            MYSQL_PASSWORD: ${DB_PASSWORD:-userpass}
+            MYSQL_USER: ${DB_USERNAME:-username}
+        volumes:
+            - ./.docker/mysql/dbdata:/var/lib/mysql
+        ports:
+            - "3388:3306"
+        networks:
+            - laravel
 
-  # Serviço Redis
-  redis:
-    image: redis:alpine
-    container_name: sigstore_redis
-    restart: unless-stopped
-    ports:
-      - "6379:6379"
-    networks:
-      - erp_network
+    # PHPMyAdmin
+    phpmyadmin:
+        image: phpmyadmin/phpmyadmin
+        restart: unless-stopped
+        ports:
+            - "8080:80"
+        environment:
+            PMA_HOST: db
+            PMA_PORT: 3306
+            MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-userpass}
+        networks:
+            - laravel
 
-volumes:
-  dbdata:
+    # redis
+    redis:
+        image: redis:latest
+        networks:
+            - laravel
 
 networks:
-  erp_network:
-    driver: bridge 
+    laravel:
+        driver: bridge
