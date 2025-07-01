@@ -11,7 +11,8 @@ RUN apt-get update && apt-get install -y \
     unzip \
     libzip-dev \
     libicu-dev \
-    libxml2-dev
+    libxml2-dev \
+    sudo
 
 # Limpar cache
 RUN apt-get clean && rm -rf /var/lib/apt/lists/*
@@ -29,19 +30,23 @@ WORKDIR /var/www
 ARG UID=1000
 ARG GID=1000
 RUN groupadd -g $GID appuser && \
-    useradd -u $UID -g $GID -m -s /bin/bash appuser
-
-# Ajustar permissões
-RUN chown -R appuser:appuser /var/www
-RUN chmod -R 775 /var/www
+    useradd -u $UID -g $GID -m -s /bin/bash appuser && \
+    echo "appuser ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Configurar Git para aceitar o diretório e evitar problemas de permissão
 RUN git config --global --add safe.directory /var/www && \
     git config --global user.name "Docker User" && \
     git config --global user.email "docker@example.com"
 
+# Copiar script de entrada
+COPY docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # Mudar para o usuário appuser
 USER appuser
+
+# Definir script de entrada
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
 # Expor porta 9000
 EXPOSE 9000

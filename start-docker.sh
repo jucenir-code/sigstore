@@ -43,7 +43,12 @@ docker-compose up -d
 
 # Aguardar um pouco para os serviços iniciarem
 echo "⏳ Aguardando serviços iniciarem..."
-sleep 10
+sleep 15
+
+# Corrigir permissões após a inicialização
+echo "🔧 Corrigindo permissões..."
+docker-compose exec app sudo chown -R appuser:appuser /var/www 2>/dev/null || true
+docker-compose exec app sudo chmod -R 775 /var/www 2>/dev/null || true
 
 # Verificar status dos containers
 echo "📊 Status dos containers:"
